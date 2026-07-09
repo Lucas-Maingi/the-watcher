@@ -23,8 +23,10 @@ class GraphStore:
     # ---------- mutation ----------
 
     def add_node(self, node: Node) -> None:
-        # idempotent: same id merges props instead of duplicating
-        if self.g.has_node(node.id):
+        # idempotent: same id merges props instead of duplicating.
+        # (an edge added before its endpoint makes networkx create a bare
+        # attribute-less node - treat that as "not really there yet")
+        if self.g.has_node(node.id) and "props" in self.g.nodes[node.id]:
             self.g.nodes[node.id]["props"].update(node.props)
         else:
             self.g.add_node(node.id, type=node.type, name=node.name, props=dict(node.props))

@@ -1,0 +1,2879 @@
+{
+ "nodes": [
+  {
+   "id": "external:internet",
+   "type": "external",
+   "name": "internet",
+   "props": {}
+  },
+  {
+   "id": "iam_policy:lambda-exec-standard",
+   "type": "iam_policy",
+   "name": "lambda-exec-standard",
+   "props": {
+    "actions": [
+     "s3:*",
+     "dynamodb:*",
+     "sqs:*",
+     "logs:*"
+    ],
+    "resources": [
+     "*"
+    ],
+    "managed": false,
+    "source": "terraform module: modules/lambda-service (copied since 2023)"
+   }
+  },
+  {
+   "id": "iam_role:lambda-exec-standard-role",
+   "type": "iam_role",
+   "name": "lambda-exec-standard-role",
+   "props": {
+    "trust": "lambda.amazonaws.com"
+   }
+  },
+  {
+   "id": "security_group:sg-debug-temp",
+   "type": "security_group",
+   "name": "sg-debug-temp",
+   "props": {
+    "rules": [
+     {
+      "port": 22,
+      "cidr": "0.0.0.0/0",
+      "protocol": "tcp"
+     },
+     {
+      "port": 5432,
+      "cidr": "0.0.0.0/0",
+      "protocol": "tcp"
+     }
+    ],
+    "description": "TEMP: debugging prod incident 2024-03 (never removed)"
+   }
+  },
+  {
+   "id": "s3_bucket:brightpath-customer-exports",
+   "type": "s3_bucket",
+   "name": "brightpath-customer-exports",
+   "props": {
+    "public": true,
+    "policy": "AllowPublicRead",
+    "contains_pii": true
+   }
+  },
+  {
+   "id": "secret:AWS_DEPLOY_KEY",
+   "type": "secret",
+   "name": "AWS_DEPLOY_KEY",
+   "props": {
+    "kind": "long-lived aws access key",
+    "stored_in": "github actions org secret",
+    "rotated": "2024-01 (18 months ago)"
+   }
+  },
+  {
+   "id": "iam_role:ci-deploy-admin",
+   "type": "iam_role",
+   "name": "ci-deploy-admin",
+   "props": {
+    "trust": "iam user brightpath-ci (access key)"
+   }
+  },
+  {
+   "id": "iam_policy:AdministratorAccess",
+   "type": "iam_policy",
+   "name": "AdministratorAccess",
+   "props": {
+    "actions": [
+     "*"
+    ],
+    "resources": [
+     "*"
+    ],
+    "managed": true
+   }
+  },
+  {
+   "id": "s3_bucket:brightpath-payments-data",
+   "type": "s3_bucket",
+   "name": "brightpath-payments-data",
+   "props": {
+    "public": false,
+    "encrypted": true
+   }
+  },
+  {
+   "id": "s3_bucket:brightpath-risk-data",
+   "type": "s3_bucket",
+   "name": "brightpath-risk-data",
+   "props": {
+    "public": false,
+    "encrypted": true
+   }
+  },
+  {
+   "id": "s3_bucket:brightpath-data-data",
+   "type": "s3_bucket",
+   "name": "brightpath-data-data",
+   "props": {
+    "public": false,
+    "encrypted": true
+   }
+  },
+  {
+   "id": "security_group:sg-internal-only",
+   "type": "security_group",
+   "name": "sg-internal-only",
+   "props": {
+    "rules": [
+     {
+      "port": 443,
+      "cidr": "10.0.0.0/8",
+      "protocol": "tcp"
+     }
+    ]
+   }
+  },
+  {
+   "id": "repository:platform-core",
+   "type": "repository",
+   "name": "platform-core",
+   "props": {
+    "language": "go",
+    "team": "platform",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:platform-core",
+   "type": "service",
+   "name": "platform-core",
+   "props": {
+    "team": "platform",
+    "runtime": "ecs"
+   }
+  },
+  {
+   "id": "pipeline:platform-core/deploy.yml",
+   "type": "pipeline",
+   "name": "platform-core/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:platform-core/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "iam_role:platform-core-task-role",
+   "type": "iam_role",
+   "name": "platform-core-task-role",
+   "props": {
+    "trust": "ecs-tasks.amazonaws.com"
+   }
+  },
+  {
+   "id": "iam_policy:platform-core-scoped",
+   "type": "iam_policy",
+   "name": "platform-core-scoped",
+   "props": {
+    "actions": [
+     "s3:GetObject",
+     "sqs:SendMessage"
+    ],
+    "resources": [
+     "arn:aws:s3:::brightpath-platform-data/*"
+    ]
+   }
+  },
+  {
+   "id": "repository:auth-service",
+   "type": "repository",
+   "name": "auth-service",
+   "props": {
+    "language": "go",
+    "team": "platform",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:auth-service",
+   "type": "service",
+   "name": "auth-service",
+   "props": {
+    "team": "platform",
+    "runtime": "ecs"
+   }
+  },
+  {
+   "id": "pipeline:auth-service/deploy.yml",
+   "type": "pipeline",
+   "name": "auth-service/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:auth-service/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "iam_role:auth-service-task-role",
+   "type": "iam_role",
+   "name": "auth-service-task-role",
+   "props": {
+    "trust": "ecs-tasks.amazonaws.com"
+   }
+  },
+  {
+   "id": "iam_policy:auth-service-scoped",
+   "type": "iam_policy",
+   "name": "auth-service-scoped",
+   "props": {
+    "actions": [
+     "s3:GetObject",
+     "sqs:SendMessage"
+    ],
+    "resources": [
+     "arn:aws:s3:::brightpath-platform-data/*"
+    ]
+   }
+  },
+  {
+   "id": "repository:api-gateway",
+   "type": "repository",
+   "name": "api-gateway",
+   "props": {
+    "language": "node",
+    "team": "platform",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:api-gateway",
+   "type": "service",
+   "name": "api-gateway",
+   "props": {
+    "team": "platform",
+    "runtime": "ecs"
+   }
+  },
+  {
+   "id": "pipeline:api-gateway/deploy.yml",
+   "type": "pipeline",
+   "name": "api-gateway/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:api-gateway/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "iam_role:api-gateway-task-role",
+   "type": "iam_role",
+   "name": "api-gateway-task-role",
+   "props": {
+    "trust": "ecs-tasks.amazonaws.com"
+   }
+  },
+  {
+   "id": "iam_policy:api-gateway-scoped",
+   "type": "iam_policy",
+   "name": "api-gateway-scoped",
+   "props": {
+    "actions": [
+     "s3:GetObject",
+     "sqs:SendMessage"
+    ],
+    "resources": [
+     "arn:aws:s3:::brightpath-platform-data/*"
+    ]
+   }
+  },
+  {
+   "id": "repository:payments-service",
+   "type": "repository",
+   "name": "payments-service",
+   "props": {
+    "language": "python",
+    "team": "payments",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:payments-service",
+   "type": "service",
+   "name": "payments-service",
+   "props": {
+    "team": "payments",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "pipeline:payments-service/deploy.yml",
+   "type": "pipeline",
+   "name": "payments-service/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:payments-service/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:payments-service",
+   "type": "lambda_function",
+   "name": "payments-service",
+   "props": {
+    "runtime": "python3.12"
+   }
+  },
+  {
+   "id": "service:ledger-service",
+   "type": "service",
+   "name": "ledger-service",
+   "props": {
+    "team": "payments",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "repository:ledger-service",
+   "type": "repository",
+   "name": "ledger-service",
+   "props": {
+    "language": "python",
+    "team": "payments",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "pipeline:ledger-service/deploy.yml",
+   "type": "pipeline",
+   "name": "ledger-service/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:ledger-service/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:ledger-service",
+   "type": "lambda_function",
+   "name": "ledger-service",
+   "props": {
+    "runtime": "python3.12"
+   }
+  },
+  {
+   "id": "repository:payouts-service",
+   "type": "repository",
+   "name": "payouts-service",
+   "props": {
+    "language": "python",
+    "team": "payments",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:payouts-service",
+   "type": "service",
+   "name": "payouts-service",
+   "props": {
+    "team": "payments",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "pipeline:payouts-service/deploy.yml",
+   "type": "pipeline",
+   "name": "payouts-service/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:payouts-service/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:payouts-service",
+   "type": "lambda_function",
+   "name": "payouts-service",
+   "props": {
+    "runtime": "python3.12"
+   }
+  },
+  {
+   "id": "repository:card-issuing",
+   "type": "repository",
+   "name": "card-issuing",
+   "props": {
+    "language": "python",
+    "team": "payments",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:card-issuing",
+   "type": "service",
+   "name": "card-issuing",
+   "props": {
+    "team": "payments",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "pipeline:card-issuing/deploy.yml",
+   "type": "pipeline",
+   "name": "card-issuing/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:card-issuing/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:card-issuing",
+   "type": "lambda_function",
+   "name": "card-issuing",
+   "props": {
+    "runtime": "python3.12"
+   }
+  },
+  {
+   "id": "service:kyc-service",
+   "type": "service",
+   "name": "kyc-service",
+   "props": {
+    "team": "risk",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "repository:kyc-service",
+   "type": "repository",
+   "name": "kyc-service",
+   "props": {
+    "language": "python",
+    "team": "risk",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "pipeline:kyc-service/deploy.yml",
+   "type": "pipeline",
+   "name": "kyc-service/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:kyc-service/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:kyc-service",
+   "type": "lambda_function",
+   "name": "kyc-service",
+   "props": {
+    "runtime": "python3.12"
+   }
+  },
+  {
+   "id": "repository:fraud-scoring",
+   "type": "repository",
+   "name": "fraud-scoring",
+   "props": {
+    "language": "python",
+    "team": "risk",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:fraud-scoring",
+   "type": "service",
+   "name": "fraud-scoring",
+   "props": {
+    "team": "risk",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "pipeline:fraud-scoring/deploy.yml",
+   "type": "pipeline",
+   "name": "fraud-scoring/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:fraud-scoring/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:fraud-scoring",
+   "type": "lambda_function",
+   "name": "fraud-scoring",
+   "props": {
+    "runtime": "python3.12"
+   }
+  },
+  {
+   "id": "repository:risk-rules",
+   "type": "repository",
+   "name": "risk-rules",
+   "props": {
+    "language": "python",
+    "team": "risk",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:risk-rules",
+   "type": "service",
+   "name": "risk-rules",
+   "props": {
+    "team": "risk",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "pipeline:risk-rules/deploy.yml",
+   "type": "pipeline",
+   "name": "risk-rules/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:risk-rules/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:risk-rules",
+   "type": "lambda_function",
+   "name": "risk-rules",
+   "props": {
+    "runtime": "python3.12"
+   }
+  },
+  {
+   "id": "repository:notifications",
+   "type": "repository",
+   "name": "notifications",
+   "props": {
+    "language": "node",
+    "team": "growth",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:notifications",
+   "type": "service",
+   "name": "notifications",
+   "props": {
+    "team": "growth",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "pipeline:notifications/deploy.yml",
+   "type": "pipeline",
+   "name": "notifications/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:notifications/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:notifications",
+   "type": "lambda_function",
+   "name": "notifications",
+   "props": {
+    "runtime": "nodejs20.x"
+   }
+  },
+  {
+   "id": "repository:email-renderer",
+   "type": "repository",
+   "name": "email-renderer",
+   "props": {
+    "language": "node",
+    "team": "growth",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:email-renderer",
+   "type": "service",
+   "name": "email-renderer",
+   "props": {
+    "team": "growth",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "pipeline:email-renderer/deploy.yml",
+   "type": "pipeline",
+   "name": "email-renderer/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:email-renderer/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:email-renderer",
+   "type": "lambda_function",
+   "name": "email-renderer",
+   "props": {
+    "runtime": "nodejs20.x"
+   }
+  },
+  {
+   "id": "repository:referrals",
+   "type": "repository",
+   "name": "referrals",
+   "props": {
+    "language": "node",
+    "team": "growth",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:referrals",
+   "type": "service",
+   "name": "referrals",
+   "props": {
+    "team": "growth",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "pipeline:referrals/deploy.yml",
+   "type": "pipeline",
+   "name": "referrals/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:referrals/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:referrals",
+   "type": "lambda_function",
+   "name": "referrals",
+   "props": {
+    "runtime": "nodejs20.x"
+   }
+  },
+  {
+   "id": "repository:analytics-etl",
+   "type": "repository",
+   "name": "analytics-etl",
+   "props": {
+    "language": "python",
+    "team": "data",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:analytics-etl",
+   "type": "service",
+   "name": "analytics-etl",
+   "props": {
+    "team": "data",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "pipeline:analytics-etl/deploy.yml",
+   "type": "pipeline",
+   "name": "analytics-etl/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:analytics-etl/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:analytics-etl",
+   "type": "lambda_function",
+   "name": "analytics-etl",
+   "props": {
+    "runtime": "python3.12"
+   }
+  },
+  {
+   "id": "repository:reporting-api",
+   "type": "repository",
+   "name": "reporting-api",
+   "props": {
+    "language": "python",
+    "team": "data",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:reporting-api",
+   "type": "service",
+   "name": "reporting-api",
+   "props": {
+    "team": "data",
+    "runtime": "ecs"
+   }
+  },
+  {
+   "id": "pipeline:reporting-api/deploy.yml",
+   "type": "pipeline",
+   "name": "reporting-api/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:reporting-api/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "iam_role:reporting-api-task-role",
+   "type": "iam_role",
+   "name": "reporting-api-task-role",
+   "props": {
+    "trust": "ecs-tasks.amazonaws.com"
+   }
+  },
+  {
+   "id": "iam_policy:reporting-api-scoped",
+   "type": "iam_policy",
+   "name": "reporting-api-scoped",
+   "props": {
+    "actions": [
+     "s3:GetObject",
+     "sqs:SendMessage"
+    ],
+    "resources": [
+     "arn:aws:s3:::brightpath-data-data/*"
+    ]
+   }
+  },
+  {
+   "id": "repository:data-export",
+   "type": "repository",
+   "name": "data-export",
+   "props": {
+    "language": "python",
+    "team": "data",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:data-export",
+   "type": "service",
+   "name": "data-export",
+   "props": {
+    "team": "data",
+    "runtime": "lambda"
+   }
+  },
+  {
+   "id": "pipeline:data-export/deploy.yml",
+   "type": "pipeline",
+   "name": "data-export/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:data-export/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "lambda_function:data-export",
+   "type": "lambda_function",
+   "name": "data-export",
+   "props": {
+    "runtime": "python3.12"
+   }
+  },
+  {
+   "id": "repository:customer-portal",
+   "type": "repository",
+   "name": "customer-portal",
+   "props": {
+    "language": "node",
+    "team": "web",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:customer-portal",
+   "type": "service",
+   "name": "customer-portal",
+   "props": {
+    "team": "web",
+    "runtime": "ecs"
+   }
+  },
+  {
+   "id": "pipeline:customer-portal/deploy.yml",
+   "type": "pipeline",
+   "name": "customer-portal/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:customer-portal/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "iam_role:customer-portal-task-role",
+   "type": "iam_role",
+   "name": "customer-portal-task-role",
+   "props": {
+    "trust": "ecs-tasks.amazonaws.com"
+   }
+  },
+  {
+   "id": "iam_policy:customer-portal-scoped",
+   "type": "iam_policy",
+   "name": "customer-portal-scoped",
+   "props": {
+    "actions": [
+     "s3:GetObject",
+     "sqs:SendMessage"
+    ],
+    "resources": [
+     "arn:aws:s3:::brightpath-web-data/*"
+    ]
+   }
+  },
+  {
+   "id": "repository:admin-console",
+   "type": "repository",
+   "name": "admin-console",
+   "props": {
+    "language": "node",
+    "team": "web",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:admin-console",
+   "type": "service",
+   "name": "admin-console",
+   "props": {
+    "team": "web",
+    "runtime": "ecs"
+   }
+  },
+  {
+   "id": "pipeline:admin-console/deploy.yml",
+   "type": "pipeline",
+   "name": "admin-console/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:admin-console/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "iam_role:admin-console-task-role",
+   "type": "iam_role",
+   "name": "admin-console-task-role",
+   "props": {
+    "trust": "ecs-tasks.amazonaws.com"
+   }
+  },
+  {
+   "id": "iam_policy:admin-console-scoped",
+   "type": "iam_policy",
+   "name": "admin-console-scoped",
+   "props": {
+    "actions": [
+     "s3:GetObject",
+     "sqs:SendMessage"
+    ],
+    "resources": [
+     "arn:aws:s3:::brightpath-web-data/*"
+    ]
+   }
+  },
+  {
+   "id": "repository:webhooks-ingest",
+   "type": "repository",
+   "name": "webhooks-ingest",
+   "props": {
+    "language": "go",
+    "team": "platform",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:webhooks-ingest",
+   "type": "service",
+   "name": "webhooks-ingest",
+   "props": {
+    "team": "platform",
+    "runtime": "ecs"
+   }
+  },
+  {
+   "id": "pipeline:webhooks-ingest/deploy.yml",
+   "type": "pipeline",
+   "name": "webhooks-ingest/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:webhooks-ingest/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "iam_role:webhooks-ingest-task-role",
+   "type": "iam_role",
+   "name": "webhooks-ingest-task-role",
+   "props": {
+    "trust": "ecs-tasks.amazonaws.com"
+   }
+  },
+  {
+   "id": "iam_policy:webhooks-ingest-scoped",
+   "type": "iam_policy",
+   "name": "webhooks-ingest-scoped",
+   "props": {
+    "actions": [
+     "s3:GetObject",
+     "sqs:SendMessage"
+    ],
+    "resources": [
+     "arn:aws:s3:::brightpath-platform-data/*"
+    ]
+   }
+  },
+  {
+   "id": "repository:mobile-bff",
+   "type": "repository",
+   "name": "mobile-bff",
+   "props": {
+    "language": "node",
+    "team": "web",
+    "default_branch": "main"
+   }
+  },
+  {
+   "id": "service:mobile-bff",
+   "type": "service",
+   "name": "mobile-bff",
+   "props": {
+    "team": "web",
+    "runtime": "ecs"
+   }
+  },
+  {
+   "id": "pipeline:mobile-bff/deploy.yml",
+   "type": "pipeline",
+   "name": "mobile-bff/deploy.yml",
+   "props": {
+    "provider": "github-actions"
+   }
+  },
+  {
+   "id": "pipeline_step:mobile-bff/deploy.yml#deploy",
+   "type": "pipeline_step",
+   "name": "deploy",
+   "props": {
+    "uses": "aws-actions/configure-aws-credentials"
+   }
+  },
+  {
+   "id": "iam_role:mobile-bff-task-role",
+   "type": "iam_role",
+   "name": "mobile-bff-task-role",
+   "props": {
+    "trust": "ecs-tasks.amazonaws.com"
+   }
+  },
+  {
+   "id": "iam_policy:mobile-bff-scoped",
+   "type": "iam_policy",
+   "name": "mobile-bff-scoped",
+   "props": {
+    "actions": [
+     "s3:GetObject",
+     "sqs:SendMessage"
+    ],
+    "resources": [
+     "arn:aws:s3:::brightpath-web-data/*"
+    ]
+   }
+  },
+  {
+   "id": "dependency:requests",
+   "type": "dependency",
+   "name": "requests",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "id": "dependency:express",
+   "type": "dependency",
+   "name": "express",
+   "props": {
+    "version": "4.18.2"
+   }
+  },
+  {
+   "id": "dependency:internal-sdk",
+   "type": "dependency",
+   "name": "internal-sdk",
+   "props": {
+    "version": "0.9.4"
+   }
+  }
+ ],
+ "edges": [
+  {
+   "src": "iam_policy:lambda-exec-standard",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "attached_to",
+   "props": {}
+  },
+  {
+   "src": "security_group:sg-debug-temp",
+   "dst": "external:internet",
+   "type": "allows_traffic",
+   "props": {
+    "ports": [
+     22,
+     5432
+    ],
+    "cidr": "0.0.0.0/0"
+   }
+  },
+  {
+   "src": "s3_bucket:brightpath-customer-exports",
+   "dst": "external:internet",
+   "type": "exposed_to",
+   "props": {
+    "via": "bucket policy Principal:*"
+   }
+  },
+  {
+   "src": "iam_policy:AdministratorAccess",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "attached_to",
+   "props": {}
+  },
+  {
+   "src": "repository:platform-core",
+   "dst": "service:platform-core",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:platform-core",
+   "dst": "pipeline:platform-core/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:platform-core",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:platform-core",
+   "dst": "iam_role:platform-core-task-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "service:platform-core",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "pipeline:platform-core/deploy.yml",
+   "dst": "pipeline_step:platform-core/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:platform-core/deploy.yml#deploy",
+   "dst": "service:platform-core",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:platform-core/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:platform-core/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "iam_policy:platform-core-scoped",
+   "dst": "iam_role:platform-core-task-role",
+   "type": "attached_to",
+   "props": {}
+  },
+  {
+   "src": "repository:auth-service",
+   "dst": "service:auth-service",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:auth-service",
+   "dst": "pipeline:auth-service/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:auth-service",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:auth-service",
+   "dst": "iam_role:auth-service-task-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "service:auth-service",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:auth-service",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:auth-service/deploy.yml",
+   "dst": "pipeline_step:auth-service/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:auth-service/deploy.yml#deploy",
+   "dst": "service:auth-service",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:auth-service/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:auth-service/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "iam_policy:auth-service-scoped",
+   "dst": "iam_role:auth-service-task-role",
+   "type": "attached_to",
+   "props": {}
+  },
+  {
+   "src": "repository:api-gateway",
+   "dst": "service:api-gateway",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:api-gateway",
+   "dst": "pipeline:api-gateway/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:api-gateway",
+   "dst": "dependency:express",
+   "type": "depends_on",
+   "props": {
+    "version": "4.18.2"
+   }
+  },
+  {
+   "src": "repository:api-gateway",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:api-gateway",
+   "dst": "iam_role:api-gateway-task-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "service:api-gateway",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:api-gateway",
+   "dst": "service:auth-service",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "service:api-gateway",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:api-gateway/deploy.yml",
+   "dst": "pipeline_step:api-gateway/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:api-gateway/deploy.yml#deploy",
+   "dst": "service:api-gateway",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:api-gateway/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:api-gateway/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "iam_policy:api-gateway-scoped",
+   "dst": "iam_role:api-gateway-task-role",
+   "type": "attached_to",
+   "props": {}
+  },
+  {
+   "src": "repository:payments-service",
+   "dst": "service:payments-service",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:payments-service",
+   "dst": "pipeline:payments-service/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:payments-service",
+   "dst": "dependency:requests",
+   "type": "depends_on",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "src": "repository:payments-service",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:payments-service",
+   "dst": "lambda_function:payments-service",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:payments-service",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:payments-service",
+   "dst": "s3_bucket:brightpath-payments-data",
+   "type": "reads",
+   "props": {}
+  },
+  {
+   "src": "service:payments-service",
+   "dst": "s3_bucket:brightpath-payments-data",
+   "type": "writes",
+   "props": {}
+  },
+  {
+   "src": "service:payments-service",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "service:payments-service",
+   "dst": "service:ledger-service",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:payments-service/deploy.yml",
+   "dst": "pipeline_step:payments-service/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:payments-service/deploy.yml#deploy",
+   "dst": "service:payments-service",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:payments-service/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:payments-service/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:payments-service",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "service:ledger-service",
+   "dst": "lambda_function:ledger-service",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:ledger-service",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:ledger-service",
+   "dst": "s3_bucket:brightpath-payments-data",
+   "type": "reads",
+   "props": {}
+  },
+  {
+   "src": "service:ledger-service",
+   "dst": "s3_bucket:brightpath-payments-data",
+   "type": "writes",
+   "props": {}
+  },
+  {
+   "src": "service:ledger-service",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "repository:ledger-service",
+   "dst": "service:ledger-service",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:ledger-service",
+   "dst": "pipeline:ledger-service/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:ledger-service",
+   "dst": "dependency:requests",
+   "type": "depends_on",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "src": "repository:ledger-service",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "pipeline:ledger-service/deploy.yml",
+   "dst": "pipeline_step:ledger-service/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:ledger-service/deploy.yml#deploy",
+   "dst": "service:ledger-service",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:ledger-service/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:ledger-service/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:ledger-service",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "repository:payouts-service",
+   "dst": "service:payouts-service",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:payouts-service",
+   "dst": "pipeline:payouts-service/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:payouts-service",
+   "dst": "dependency:requests",
+   "type": "depends_on",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "src": "repository:payouts-service",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:payouts-service",
+   "dst": "lambda_function:payouts-service",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:payouts-service",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:payouts-service",
+   "dst": "s3_bucket:brightpath-payments-data",
+   "type": "reads",
+   "props": {}
+  },
+  {
+   "src": "service:payouts-service",
+   "dst": "s3_bucket:brightpath-payments-data",
+   "type": "writes",
+   "props": {}
+  },
+  {
+   "src": "service:payouts-service",
+   "dst": "service:ledger-service",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "service:payouts-service",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:payouts-service/deploy.yml",
+   "dst": "pipeline_step:payouts-service/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:payouts-service/deploy.yml#deploy",
+   "dst": "service:payouts-service",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:payouts-service/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:payouts-service/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:payouts-service",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "repository:card-issuing",
+   "dst": "service:card-issuing",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:card-issuing",
+   "dst": "pipeline:card-issuing/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:card-issuing",
+   "dst": "dependency:requests",
+   "type": "depends_on",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "src": "repository:card-issuing",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:card-issuing",
+   "dst": "lambda_function:card-issuing",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:card-issuing",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:card-issuing",
+   "dst": "s3_bucket:brightpath-payments-data",
+   "type": "reads",
+   "props": {}
+  },
+  {
+   "src": "service:card-issuing",
+   "dst": "s3_bucket:brightpath-payments-data",
+   "type": "writes",
+   "props": {}
+  },
+  {
+   "src": "service:card-issuing",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "service:card-issuing",
+   "dst": "service:kyc-service",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:card-issuing/deploy.yml",
+   "dst": "pipeline_step:card-issuing/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:card-issuing/deploy.yml#deploy",
+   "dst": "service:card-issuing",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:card-issuing/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:card-issuing/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:card-issuing",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "service:kyc-service",
+   "dst": "lambda_function:kyc-service",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:kyc-service",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:kyc-service",
+   "dst": "s3_bucket:brightpath-risk-data",
+   "type": "reads",
+   "props": {}
+  },
+  {
+   "src": "service:kyc-service",
+   "dst": "s3_bucket:brightpath-risk-data",
+   "type": "writes",
+   "props": {}
+  },
+  {
+   "src": "service:kyc-service",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "repository:kyc-service",
+   "dst": "service:kyc-service",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:kyc-service",
+   "dst": "pipeline:kyc-service/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:kyc-service",
+   "dst": "dependency:requests",
+   "type": "depends_on",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "src": "repository:kyc-service",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "pipeline:kyc-service/deploy.yml",
+   "dst": "pipeline_step:kyc-service/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:kyc-service/deploy.yml#deploy",
+   "dst": "service:kyc-service",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:kyc-service/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:kyc-service/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:kyc-service",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "repository:fraud-scoring",
+   "dst": "service:fraud-scoring",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:fraud-scoring",
+   "dst": "pipeline:fraud-scoring/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:fraud-scoring",
+   "dst": "dependency:requests",
+   "type": "depends_on",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "src": "repository:fraud-scoring",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:fraud-scoring",
+   "dst": "lambda_function:fraud-scoring",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:fraud-scoring",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:fraud-scoring",
+   "dst": "s3_bucket:brightpath-risk-data",
+   "type": "reads",
+   "props": {}
+  },
+  {
+   "src": "service:fraud-scoring",
+   "dst": "s3_bucket:brightpath-risk-data",
+   "type": "writes",
+   "props": {}
+  },
+  {
+   "src": "service:fraud-scoring",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "service:fraud-scoring",
+   "dst": "service:kyc-service",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:fraud-scoring/deploy.yml",
+   "dst": "pipeline_step:fraud-scoring/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:fraud-scoring/deploy.yml#deploy",
+   "dst": "service:fraud-scoring",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:fraud-scoring/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:fraud-scoring/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:fraud-scoring",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "repository:risk-rules",
+   "dst": "service:risk-rules",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:risk-rules",
+   "dst": "pipeline:risk-rules/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:risk-rules",
+   "dst": "dependency:requests",
+   "type": "depends_on",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "src": "repository:risk-rules",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:risk-rules",
+   "dst": "lambda_function:risk-rules",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:risk-rules",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:risk-rules",
+   "dst": "s3_bucket:brightpath-risk-data",
+   "type": "reads",
+   "props": {}
+  },
+  {
+   "src": "service:risk-rules",
+   "dst": "s3_bucket:brightpath-risk-data",
+   "type": "writes",
+   "props": {}
+  },
+  {
+   "src": "service:risk-rules",
+   "dst": "service:fraud-scoring",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:risk-rules/deploy.yml",
+   "dst": "pipeline_step:risk-rules/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:risk-rules/deploy.yml#deploy",
+   "dst": "service:risk-rules",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:risk-rules/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:risk-rules/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:risk-rules",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "repository:notifications",
+   "dst": "service:notifications",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:notifications",
+   "dst": "pipeline:notifications/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:notifications",
+   "dst": "dependency:express",
+   "type": "depends_on",
+   "props": {
+    "version": "4.18.2"
+   }
+  },
+  {
+   "src": "repository:notifications",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:notifications",
+   "dst": "lambda_function:notifications",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:notifications",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:notifications",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:notifications/deploy.yml",
+   "dst": "pipeline_step:notifications/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:notifications/deploy.yml#deploy",
+   "dst": "service:notifications",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:notifications/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:notifications/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:notifications",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "repository:email-renderer",
+   "dst": "service:email-renderer",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:email-renderer",
+   "dst": "pipeline:email-renderer/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:email-renderer",
+   "dst": "dependency:express",
+   "type": "depends_on",
+   "props": {
+    "version": "4.18.2"
+   }
+  },
+  {
+   "src": "repository:email-renderer",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:email-renderer",
+   "dst": "lambda_function:email-renderer",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:email-renderer",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:email-renderer",
+   "dst": "service:notifications",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:email-renderer/deploy.yml",
+   "dst": "pipeline_step:email-renderer/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:email-renderer/deploy.yml#deploy",
+   "dst": "service:email-renderer",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:email-renderer/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:email-renderer/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:email-renderer",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "repository:referrals",
+   "dst": "service:referrals",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:referrals",
+   "dst": "pipeline:referrals/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:referrals",
+   "dst": "dependency:express",
+   "type": "depends_on",
+   "props": {
+    "version": "4.18.2"
+   }
+  },
+  {
+   "src": "repository:referrals",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:referrals",
+   "dst": "lambda_function:referrals",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:referrals",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:referrals",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "service:referrals",
+   "dst": "service:notifications",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:referrals/deploy.yml",
+   "dst": "pipeline_step:referrals/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:referrals/deploy.yml#deploy",
+   "dst": "service:referrals",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:referrals/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:referrals/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:referrals",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "repository:analytics-etl",
+   "dst": "service:analytics-etl",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:analytics-etl",
+   "dst": "pipeline:analytics-etl/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:analytics-etl",
+   "dst": "dependency:requests",
+   "type": "depends_on",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "src": "repository:analytics-etl",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:analytics-etl",
+   "dst": "lambda_function:analytics-etl",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:analytics-etl",
+   "dst": "security_group:sg-debug-temp",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:analytics-etl",
+   "dst": "s3_bucket:brightpath-data-data",
+   "type": "reads",
+   "props": {}
+  },
+  {
+   "src": "service:analytics-etl",
+   "dst": "s3_bucket:brightpath-data-data",
+   "type": "writes",
+   "props": {}
+  },
+  {
+   "src": "service:analytics-etl",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:analytics-etl/deploy.yml",
+   "dst": "pipeline_step:analytics-etl/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:analytics-etl/deploy.yml#deploy",
+   "dst": "service:analytics-etl",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:analytics-etl/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:analytics-etl/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:analytics-etl",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "repository:reporting-api",
+   "dst": "service:reporting-api",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:reporting-api",
+   "dst": "pipeline:reporting-api/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:reporting-api",
+   "dst": "dependency:requests",
+   "type": "depends_on",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "src": "repository:reporting-api",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:reporting-api",
+   "dst": "iam_role:reporting-api-task-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "service:reporting-api",
+   "dst": "security_group:sg-debug-temp",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:reporting-api",
+   "dst": "s3_bucket:brightpath-data-data",
+   "type": "reads",
+   "props": {}
+  },
+  {
+   "src": "service:reporting-api",
+   "dst": "s3_bucket:brightpath-data-data",
+   "type": "writes",
+   "props": {}
+  },
+  {
+   "src": "service:reporting-api",
+   "dst": "service:analytics-etl",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "service:reporting-api",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "service:reporting-api",
+   "dst": "s3_bucket:brightpath-customer-exports",
+   "type": "writes",
+   "props": {
+    "data": "customer export csv (pii)"
+   }
+  },
+  {
+   "src": "pipeline:reporting-api/deploy.yml",
+   "dst": "pipeline_step:reporting-api/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:reporting-api/deploy.yml#deploy",
+   "dst": "service:reporting-api",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:reporting-api/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:reporting-api/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "iam_policy:reporting-api-scoped",
+   "dst": "iam_role:reporting-api-task-role",
+   "type": "attached_to",
+   "props": {}
+  },
+  {
+   "src": "repository:data-export",
+   "dst": "service:data-export",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:data-export",
+   "dst": "pipeline:data-export/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:data-export",
+   "dst": "dependency:requests",
+   "type": "depends_on",
+   "props": {
+    "version": "2.31.0"
+   }
+  },
+  {
+   "src": "repository:data-export",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:data-export",
+   "dst": "lambda_function:data-export",
+   "type": "depends_on",
+   "props": {
+    "is": "runtime"
+   }
+  },
+  {
+   "src": "service:data-export",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:data-export",
+   "dst": "s3_bucket:brightpath-data-data",
+   "type": "reads",
+   "props": {}
+  },
+  {
+   "src": "service:data-export",
+   "dst": "s3_bucket:brightpath-data-data",
+   "type": "writes",
+   "props": {}
+  },
+  {
+   "src": "service:data-export",
+   "dst": "service:analytics-etl",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "service:data-export",
+   "dst": "s3_bucket:brightpath-customer-exports",
+   "type": "writes",
+   "props": {
+    "data": "customer export csv (pii)"
+   }
+  },
+  {
+   "src": "pipeline:data-export/deploy.yml",
+   "dst": "pipeline_step:data-export/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:data-export/deploy.yml#deploy",
+   "dst": "service:data-export",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:data-export/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:data-export/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "lambda_function:data-export",
+   "dst": "iam_role:lambda-exec-standard-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "repository:customer-portal",
+   "dst": "service:customer-portal",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:customer-portal",
+   "dst": "pipeline:customer-portal/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:customer-portal",
+   "dst": "dependency:express",
+   "type": "depends_on",
+   "props": {
+    "version": "4.18.2"
+   }
+  },
+  {
+   "src": "repository:customer-portal",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:customer-portal",
+   "dst": "iam_role:customer-portal-task-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "service:customer-portal",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:customer-portal",
+   "dst": "service:api-gateway",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:customer-portal/deploy.yml",
+   "dst": "pipeline_step:customer-portal/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:customer-portal/deploy.yml#deploy",
+   "dst": "service:customer-portal",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "iam_policy:customer-portal-scoped",
+   "dst": "iam_role:customer-portal-task-role",
+   "type": "attached_to",
+   "props": {}
+  },
+  {
+   "src": "repository:admin-console",
+   "dst": "service:admin-console",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:admin-console",
+   "dst": "pipeline:admin-console/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:admin-console",
+   "dst": "dependency:express",
+   "type": "depends_on",
+   "props": {
+    "version": "4.18.2"
+   }
+  },
+  {
+   "src": "repository:admin-console",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:admin-console",
+   "dst": "iam_role:admin-console-task-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "service:admin-console",
+   "dst": "security_group:sg-debug-temp",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:admin-console",
+   "dst": "service:api-gateway",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "service:admin-console",
+   "dst": "service:reporting-api",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:admin-console/deploy.yml",
+   "dst": "pipeline_step:admin-console/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:admin-console/deploy.yml#deploy",
+   "dst": "service:admin-console",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:admin-console/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:admin-console/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "iam_policy:admin-console-scoped",
+   "dst": "iam_role:admin-console-task-role",
+   "type": "attached_to",
+   "props": {}
+  },
+  {
+   "src": "repository:webhooks-ingest",
+   "dst": "service:webhooks-ingest",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:webhooks-ingest",
+   "dst": "pipeline:webhooks-ingest/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:webhooks-ingest",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:webhooks-ingest",
+   "dst": "iam_role:webhooks-ingest-task-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "service:webhooks-ingest",
+   "dst": "security_group:sg-debug-temp",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:webhooks-ingest",
+   "dst": "service:platform-core",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:webhooks-ingest/deploy.yml",
+   "dst": "pipeline_step:webhooks-ingest/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:webhooks-ingest/deploy.yml#deploy",
+   "dst": "service:webhooks-ingest",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:webhooks-ingest/deploy.yml#deploy",
+   "dst": "secret:AWS_DEPLOY_KEY",
+   "type": "uses_secret",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:webhooks-ingest/deploy.yml#deploy",
+   "dst": "iam_role:ci-deploy-admin",
+   "type": "assumes",
+   "props": {
+    "via": "long-lived access key"
+   }
+  },
+  {
+   "src": "iam_policy:webhooks-ingest-scoped",
+   "dst": "iam_role:webhooks-ingest-task-role",
+   "type": "attached_to",
+   "props": {}
+  },
+  {
+   "src": "repository:mobile-bff",
+   "dst": "service:mobile-bff",
+   "type": "implements",
+   "props": {}
+  },
+  {
+   "src": "repository:mobile-bff",
+   "dst": "pipeline:mobile-bff/deploy.yml",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "repository:mobile-bff",
+   "dst": "dependency:express",
+   "type": "depends_on",
+   "props": {
+    "version": "4.18.2"
+   }
+  },
+  {
+   "src": "repository:mobile-bff",
+   "dst": "dependency:internal-sdk",
+   "type": "depends_on",
+   "props": {
+    "version": "0.9.4"
+   }
+  },
+  {
+   "src": "service:mobile-bff",
+   "dst": "iam_role:mobile-bff-task-role",
+   "type": "assumes",
+   "props": {}
+  },
+  {
+   "src": "service:mobile-bff",
+   "dst": "security_group:sg-internal-only",
+   "type": "guarded_by",
+   "props": {}
+  },
+  {
+   "src": "service:mobile-bff",
+   "dst": "service:api-gateway",
+   "type": "calls",
+   "props": {}
+  },
+  {
+   "src": "pipeline:mobile-bff/deploy.yml",
+   "dst": "pipeline_step:mobile-bff/deploy.yml#deploy",
+   "type": "contains",
+   "props": {}
+  },
+  {
+   "src": "pipeline_step:mobile-bff/deploy.yml#deploy",
+   "dst": "service:mobile-bff",
+   "type": "deploys",
+   "props": {}
+  },
+  {
+   "src": "iam_policy:mobile-bff-scoped",
+   "dst": "iam_role:mobile-bff-task-role",
+   "type": "attached_to",
+   "props": {}
+  }
+ ]
+}
