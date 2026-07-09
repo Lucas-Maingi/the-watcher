@@ -1,0 +1,23 @@
+[project]
+name = "thewatcher"
+version = "0.1.0"
+description = "Architectural security intelligence - root causes, not alert noise"
+requires-python = ">=3.10"
+dependencies = [
+    "networkx>=3.0",
+]
+
+[project.optional-dependencies]
+connectors = ["requests>=2.31", "boto3>=1.34", "PyYAML>=6.0"]
+api = ["fastapi>=0.110", "uvicorn>=0.29", "anthropic>=0.40"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+watcher = "watcher.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["watcher*"]
