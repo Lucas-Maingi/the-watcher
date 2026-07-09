@@ -1,0 +1,21 @@
+# the whole demo, no cloud credentials required:
+#   docker compose up --build
+# then open http://localhost:8080
+#
+# optional: export ANTHROPIC_API_KEY first and the narratives are written
+# by claude instead of the offline templates.
+
+services:
+  api:
+    build: ./backend
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    ports:
+      - "8000:8000"
+
+  web:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "8080:80"

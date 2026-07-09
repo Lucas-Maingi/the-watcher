@@ -1,10 +1,23 @@
 import { useEffect, useState } from 'react'
 import FindingCard from './components/FindingCard.jsx'
 import RawView from './components/RawView.jsx'
+import Landing from './Landing.jsx'
 
 const sevOrder = { critical: 0, high: 1, medium: 2, low: 3 }
 
+// hash routing because react-router would be the biggest dependency in
+// the app for exactly two pages
 export default function App() {
+  const [route, setRoute] = useState(window.location.hash)
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash)
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+  return route === '#/app' ? <Dashboard /> : <Landing />
+}
+
+function Dashboard() {
   const [summary, setSummary] = useState(null)
   const [findings, setFindings] = useState([])
   const [raw, setRaw] = useState([])
