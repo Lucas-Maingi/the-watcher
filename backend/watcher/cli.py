@@ -80,6 +80,28 @@ def cmd_query(args: argparse.Namespace) -> None:
         print(" -> ".join(path) if path else "no path")
 
 
+def cmd_report(args: argparse.Namespace) -> None:
+    from .reasoning import ReasoningEngine
+    engine = ReasoningEngine(_load(), use_llm=not args.no_llm)
+    if args.raw:
+        sigs = engine.raw_signals()
+        print(f"{len(sigs)} raw findings (the scanner view):\n")
+        for s in sorted(sigs, key=lambda x: x.severity):
+            print(f"  [{s.severity:8s}] {s.message}")
+        return
+    findings = engine.root_causes()
+    if args.json:
+        print(json.dumps([f.to_dict() for f in findings], indent=1))
+        return
+    total = sum(f.signal_count for f in findings)
+    print(f"{len(findings)} root causes explain {total} raw findings:\n")
+    for f in findings:
+        print(f"[{f.severity.upper()}] {f.title}")
+        print(f"  explains {f.signal_count} findings | fix effort: {f.blast_radius.effort} "
+              f"| touches {len(f.blast_radius.services_touched)} services")
+        print(f"  {f.narrative}\n")
+
+
 def main() -> None:
     p = argparse.ArgumentParser(prog="watcher", description="architectural security intelligence")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -96,6 +118,13 @@ def main() -> None:
 
     sm = sub.add_parser("summary", help="graph stats")
     sm.set_defaults(func=cmd_summary)
+
+    rp = sub.add_parser("report", help="run the reasoning engine")
+    rp.add_argument("--raw", action="store_true",
+                    help="show flat scanner-style findings instead of root causes")
+    rp.add_argument("--json", action="store_true")
+    rp.add_argument("--no-llm", action="store_true", help="skip Claude, use template narratives")
+    rp.set_defaults(func=cmd_report)
 
     q = sub.add_parser("query", help="poke at the graph")
     qsub = q.add_subparsers(dest="what", required=True)
