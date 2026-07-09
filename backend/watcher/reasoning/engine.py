@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 
+from ..compliance import controls_for
 from ..graph import GraphStore
 from . import blast_radius, detectors, llm
 from .findings import RawSignal, ReasoningStep, RootCauseFinding
@@ -118,6 +119,7 @@ class ReasoningEngine:
                 signals=sorted(sigs, key=lambda s: s.id),
                 trace=trace,
                 blast_radius=blast_radius.estimate(self.store, root, sigs),
+                compliance=controls_for(rule),
             )
             findings.append(f)
 
