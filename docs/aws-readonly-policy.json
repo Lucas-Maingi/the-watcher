@@ -1,0 +1,23 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WatcherReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "iam:ListRoles",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListRolePolicies",
+        "iam:GetRolePolicy",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "ec2:DescribeSecurityGroups",
+        "s3:ListAllMyBuckets",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketPublicAccessBlock",
+        "lambda:ListFunctions"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
