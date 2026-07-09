@@ -1,29 +1,80 @@
 # The Watcher
 
-Architectural security intelligence. Instead of dumping 200 scanner alerts on you, The Watcher builds a structural graph of your stack — repos, CI pipelines, IAM roles, buckets, security groups, the trust relationships between all of them — and reasons over it to find the handful of *architectural root causes* actually generating those alerts.
+Architectural security intelligence. Instead of dumping 200 scanner alerts on you, The Watcher builds a structural graph of your stack — repos, CI pipelines, IAM roles, buckets, security groups, and the trust relationships between them — then reasons over it to find the handful of *architectural root causes* actually generating those alerts.
 
 The pitch in one line: a single over-permissioned IAM pattern copy-pasted across 40 services produces 40+ scanner findings. Fix the pattern once, all 40 go away. Every tool I've used shows me the 40. Nobody shows me the one.
 
-## What it does (or will do — see status below)
+On the built-in demo company: **56 scanner-style findings collapse to 6 root causes**, each with a reasoning trace, a blast-radius estimate, and a fix.
 
-1. **Ingests** your architecture into a property graph: GitHub repos, Actions workflows, dependency manifests, AWS IAM roles/policies, S3 buckets, security groups, Lambda configs.
-2. **Reasons** over the graph: deterministic queries surface candidate structural patterns (shared wide policies, secrets crossing trust boundaries, single points of failure), then an LLM pass clusters and explains them as root causes — with the full reasoning trace exposed, not a black-box score.
-3. **Recommends** with blast radius attached: what fixing this touches, which services, roughly how much effort, what might break.
-4. **Talks to agents**: the reasoning engine is exposed as tools (MCP-friendly) so a coding agent can ask "what architectural issues affect the file I'm editing" and get root-cause context, not alert noise.
+## Quick start (no cloud account needed)
 
-## Why NetworkX and not Neo4j
+```bash
+docker compose up --build
+# dashboard at http://localhost:8080, api at http://localhost:8000/docs
+```
 
-I started sketching this against Neo4j and stopped. For a graph of a few thousand nodes, running a JVM database in Docker buys me nothing except a slower dev loop and one more thing that can be broken during a live demo. NetworkX in-process with JSON snapshots is plenty at this scale, the query code is plain Python I can debug with a print statement, and the whole thing runs with zero services. If this ever needs to hold a real enterprise estate, the graph store is behind one interface (`watcher/graph/store.py`) and swapping it is a contained job.
+Or without Docker:
 
-## Status
+```bash
+cd backend
+pip install -e ".[connectors,api,agent]"
+watcher ingest --demo          # builds the Brightpath demo graph
+watcher report                 # root causes in the terminal
+uvicorn watcher.api.main:app --port 8000   # then `npm run dev` in frontend/
+```
 
-- [ ] Phase 1 — graph model, GitHub + AWS connectors, demo dataset generator
-- [ ] Phase 2 — reasoning engine (the actual point of this project)
-- [ ] Phase 3 — dashboard, agent tool interface, compliance mapping
-- [ ] Phase 4 — landing page, case study walkthrough
+Set `ANTHROPIC_API_KEY` and the "how we got here" narratives are written by Claude; without it you get honest offline templates and everything else works identically. The demo never depends on API quota.
 
-I'll keep this honest as I go — things that are stubbed will say so.
+## Against real infrastructure
 
-## Quick start
+```bash
+watcher ingest --github your-org --token ghp_...   # repos, manifests, actions workflows
+watcher ingest --aws --merge                       # iam, sgs, s3, lambda (read-only)
+watcher report
+```
 
-Coming with Phase 1. The goal: `docker compose up`, or just `pip install -e backend && watcher ingest --demo`, and you have a queryable graph of a realistic fake company with deliberately bad architecture.
+Both connectors are strictly read-only. The minimum IAM policy the AWS connector needs is in [docs/aws-readonly-policy.json](docs/aws-readonly-policy.json) — using `ReadOnlyAccess` for a tool like this would be ironic.
+
+## For coding agents
+
+The reasoning engine is exposed as four MCP tools ([backend/watcher/tools.py](backend/watcher/tools.py) is the contract, the docs are in the docstrings):
+
+```bash
+claude mcp add watcher -- python -m watcher.mcp_server
+```
+
+`get_context_for("services/payments/handler.py")` returns the architectural root causes touching that service — the shared IAM template it inherits, the CI key its deploys use — not lint output. `get_root_causes`, `explain_finding` and `get_blast_radius` do what they say.
+
+## How it works
+
+```
+connectors ──> property graph ──> deterministic detectors ──> clustering ──> llm narrative
+ (github,       (networkx +        (emit signals tagged        (same root      (claude, or
+  aws, demo)     json snapshot)     with their root NODE)       = same cause)   templates)
+```
+
+The design decision that makes it work: detectors don't just flag resources, they record **which graph node structurally causes each signal** plus the exact traversal as a reasoning trace. Clustering is then trivial — signals sharing a root node are symptoms of the same disease. The LLM only writes prose; it cannot add, remove or re-score findings. Detection stays reproducible and auditable, explanation gets to be human.
+
+Blast radius is exact where the graph can answer (which services, which resources) and banded where it can't (effort as hours/days/weeks — a precise number for a cross-team IAM migration would be fiction).
+
+### Why NetworkX and not Neo4j
+
+For a graph of a few thousand nodes, a JVM database in Docker buys nothing except a slower dev loop and one more thing to break during a live demo. NetworkX in-process with JSON snapshots is plenty, and the queries are plain Python. The store is behind one interface ([store.py](backend/watcher/graph/store.py)); if this ever holds a real enterprise estate, swapping it is a contained job.
+
+## Honest limitations
+
+Things this does **not** do yet, so nobody has to discover them the hard way:
+
+- **AWS coverage is the phase-1 set** (IAM, SGs, S3, Lambda). No permission boundaries, no SCPs, no resource policies beyond S3, no cross-account analysis, no VPC topology. `Condition` blocks in policies are ignored — a wildcard scoped by conditions still flags.
+- **GitHub connector** parses `package.json` / `requirements.txt` / Actions workflows. No lockfiles, no transitive dependencies, no other CI systems.
+- **Repo↔cloud linking is weak on real data.** In the demo, services connect naturally; against a live account, mapping "this repo deploys that lambda" relies on the CI workflow parsing and misses anything deployed by hand.
+- **Blast-radius effort bands are heuristics** encoded in [blast_radius.py](backend/watcher/reasoning/blast_radius.py). Auditable, but still opinions.
+- **Compliance mapping is a lookup table** from rule to ISO 27001 / SOC 2 control categories. It is not an audit tool.
+- Detectors cover five structural patterns. That's honest coverage of the classes I most wanted to demonstrate, not breadth parity with a commercial scanner — the architecture makes adding detectors cheap (one function each in [detectors.py](backend/watcher/reasoning/detectors.py)).
+
+## Reading order
+
+- [docs/case-study.md](docs/case-study.md) — the before/after walkthrough on the demo company
+- [backend/watcher/reasoning/](backend/watcher/reasoning/) — the actual IP: detectors, clustering, blast radius
+- [backend/watcher/ingest/demo.py](backend/watcher/ingest/demo.py) — the fake company and what's deliberately wrong with it
+- `python -m pytest backend/tests` — 16 tests, including the one that proves every reasoning trace only references nodes that exist
