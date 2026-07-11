@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Callable, Iterator
 
-from ..graph import EdgeType, GraphStore, Node, NodeType
+from ..graph import EdgeType, GraphStore, NodeType
 from .findings import RawSignal, ReasoningStep
 
 SENSITIVE_PORTS = {22: "ssh", 3389: "rdp", 5432: "postgres", 3306: "mysql",

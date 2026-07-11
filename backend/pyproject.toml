@@ -11,7 +11,7 @@ dependencies = [
 connectors = ["requests>=2.31", "boto3>=1.34", "PyYAML>=6.0"]
 api = ["fastapi>=0.110", "uvicorn>=0.29", "anthropic>=0.40"]
 agent = ["mcp>=1.0"]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "ruff>=0.4"]
 
 [project.scripts]
 watcher = "watcher.cli:main"
@@ -22,3 +22,15 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["watcher*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]

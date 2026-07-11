@@ -24,7 +24,6 @@ from __future__ import annotations
 
 from ..graph import Edge, EdgeType, GraphStore, Node, NodeType, node_id
 
-
 # (service, team, language, calls)
 SERVICES: list[tuple[str, str, str, list[str]]] = [
     ("platform-core",     "platform", "go",     []),
@@ -211,8 +210,8 @@ def generate(store: GraphStore | None = None) -> GraphStore:
 
     # shared dependencies so the dependency axis isn't empty
     for dep, ver, repos in [
-        ("requests", "2.31.0", [n for n, _, l, _ in SERVICES if l == "python"]),
-        ("express", "4.18.2", [n for n, _, l, _ in SERVICES if l == "node"]),
+        ("requests", "2.31.0", [n for n, _, lang, _ in SERVICES if lang == "python"]),
+        ("express", "4.18.2", [n for n, _, lang, _ in SERVICES if lang == "node"]),
         ("internal-sdk", "0.9.4", [n for n, _, _, _ in SERVICES]),
     ]:
         d = Node(node_id(NodeType.DEPENDENCY, dep), NodeType.DEPENDENCY, dep, {"version": ver})
