@@ -4,7 +4,6 @@ causes, and every reasoning trace refers to real graph elements."""
 
 import pytest
 
-from watcher.graph import GraphStore
 from watcher.ingest.demo import generate
 from watcher.reasoning import ReasoningEngine
 
