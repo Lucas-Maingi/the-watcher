@@ -1,10 +1,14 @@
 # The Watcher
 
+[![CI](https://github.com/Lucas-Maingi/the-watcher/actions/workflows/ci.yml/badge.svg)](https://github.com/Lucas-Maingi/the-watcher/actions/workflows/ci.yml)
+
 Architectural security intelligence. Instead of dumping 200 scanner alerts on you, The Watcher builds a structural graph of your stack — repos, CI pipelines, IAM roles, buckets, security groups, and the trust relationships between them — then reasons over it to find the handful of *architectural root causes* actually generating those alerts.
 
 The pitch in one line: a single over-permissioned IAM pattern copy-pasted across 40 services produces 40+ scanner findings. Fix the pattern once, all 40 go away. Every tool I've used shows me the 40. Nobody shows me the one.
 
 On the built-in demo company: **56 scanner-style findings collapse to 6 root causes**, each with a reasoning trace, a blast-radius estimate, and a fix.
+
+![The Watcher dashboard - 56 scanner findings, 6 root causes](docs/screenshots/dashboard.png)
 
 ## Quick start (no cloud account needed)
 
