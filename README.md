@@ -65,6 +65,19 @@ Blast radius is exact where the graph can answer (which services, which resource
 
 For a graph of a few thousand nodes, a JVM database in Docker buys nothing except a slower dev loop and one more thing to break during a live demo. NetworkX in-process with JSON snapshots is plenty, and the queries are plain Python. The store is behind one interface ([store.py](backend/watcher/graph/store.py)); if this ever holds a real enterprise estate, swapping it is a contained job.
 
+## How this compares to Wiz, Snyk, Prowler
+
+Not a fair fight on coverage, so let's not pretend: commercial CSPMs and scanners check thousands of rules across every cloud service; The Watcher ships five detectors over a phase-1 AWS/GitHub surface. If you need breadth today, buy breadth.
+
+What none of them give you is the thing this project exists to demonstrate:
+
+- **Root-cause clustering, not deduplication.** Wiz and friends group similar findings by *rule* ("14 buckets are public"). The Watcher groups by *structural cause* — the one Terraform module or IAM template that, when fixed, makes all 14 disappear. Same-rule grouping tells you what's wrong; same-root grouping tells you what to change.
+- **Auditable reasoning traces.** Every finding carries the exact graph traversal that produced it (`policy → attached role → assuming principal`), and there's a test asserting every trace only references nodes that exist. Scanner findings are assertions; these are arguments you can check.
+- **The LLM is decorative by design.** Detection is deterministic Python; Claude only writes the narrative prose and cannot add, remove, or re-score a finding. Most "AI security" products invert this and inherit the hallucination risk in the part that matters.
+- **Local-first and agent-native.** Runs against a JSON snapshot on your laptop, no SaaS tenant, and exposes the reasoning engine as MCP tools so a coding agent can ask "what architectural debt touches the file I'm editing" mid-refactor.
+
+The honest framing: this is the *reasoning layer* those products are missing, built small enough to audit end-to-end, not a replacement for their collection layer.
+
 ## Honest limitations
 
 Things this does **not** do yet, so nobody has to discover them the hard way:
